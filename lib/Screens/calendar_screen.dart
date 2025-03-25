@@ -9,6 +9,7 @@ import 'package:planning_and_skills_app_client/Widgets/greetings_bar.dart';
 import 'package:planning_and_skills_app_client/Widgets/reminder_widget.dart';
 import 'package:planning_and_skills_app_client/Widgets/task_board.dart';
 import 'package:planning_and_skills_app_client/Widgets/task_widget.dart';
+import 'package:planning_and_skills_app_client/models/task.dart';
 import 'package:planning_and_skills_app_client/services/permission_handler.dart';
 import 'package:planning_and_skills_app_client/services/reminder_service.dart';
 import 'package:planning_and_skills_app_client/services/task_service.dart';
@@ -23,7 +24,7 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  List<dynamic> tasksList = [];
+  List<Task> tasksList = [];
   List<dynamic> remindersList = [];
   int? userID;
   DateTime _selectedDay = DateTime(
@@ -74,14 +75,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
-  Map<DateTime, List<dynamic>> get _groupedTasks {
+  Map<DateTime, List<Task>> get _groupedTasks {
     return _groupTasksByDate(tasksList);
   }
 
-  Map<DateTime, List<dynamic>> _groupTasksByDate(List<dynamic> tasks) {
-    Map<DateTime, List<dynamic>> data = {};
+  Map<DateTime, List<Task>> _groupTasksByDate(List<Task> tasks) {
+    Map<DateTime, List<Task>> data = {};
     for (var task in tasks) {
-      DateTime date = DateTime.parse(task['date']);
+      DateTime date = task.date;
       DateTime normalizedDate = DateTime(date.year, date.month, date.day);
       if (data[normalizedDate] == null) {
         data[normalizedDate] = [];
@@ -90,7 +91,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     data.forEach((key, tasksList) {
       tasksList.sort((a, b) {
-        return (a['startTime'] as int).compareTo(b['startTime'] as int);
+        return (a.startTime).compareTo(b.startTime);
       });
     });
     return data;
@@ -116,7 +117,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
-    List<dynamic> tasksForSelectedDay = _groupedTasks[_selectedDay] ?? [];
+    List<Task> tasksForSelectedDay = _groupedTasks[_selectedDay] ?? [];
 
     return Scaffold(
       backgroundColor: Color(0xfff1f2f6),
@@ -140,125 +141,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 // SizedBox(
                 //   height: screenHeight * 0.01,
                 // ),
-                SizedBox(
-                  height: screenHeight * 0.5, // Adjust as needed
-                  child: CalendarTabs(
-                    tasks: tasksForSelectedDay.cast<Map<String, dynamic>>(),
-                    refreshTasks: getUserTasks,
-                    reminders: remindersList,
-                    refreshReminders: getUserReminders,
-                  ),
+                CalendarTabs(
+                  tasks: tasksForSelectedDay,
+                  refreshTasks: getUserTasks,
+                  reminders: remindersList,
+                  refreshReminders: getUserReminders,
                 ),
-                // Column(
-                //   crossAxisAlignment: CrossAxisAlignment.start,
-                //   children: [
-                //     const Text(
-                //       // Adjust height as needed
-                //       "Tasks",
-                //       style: TextStyle(
-                //         color: Color(0xff2A3143),
-                //         fontWeight: FontWeight.bold,
-                //       ),
-                //     ),
-                //     SizedBox(
-                //       height: screenHeight * 0.01,
-                //     ),
-                //     SingleChildScrollView(
-                //       child: Container(
-                //         height: screenHeight * 0.7,
-                //         child: TasksBoard(
-                //           tasks:
-                //               tasksForSelectedDay.cast<Map<String, dynamic>>(),
-                //           refreshTasks: getUserTasks,
-                //         ),
-                //       ),
-                //     ),
-                //     // Container(
-                //     //     child: tasksForSelectedDay.isNotEmpty
-                //     //         ? ListView.builder(
-                //     //             shrinkWrap: true,
-                //     //             itemCount: tasksForSelectedDay.length,
-                //     //             itemBuilder: (context, index) {
-                //     //               String hexColor =
-                //     //                   tasksForSelectedDay[index]['taskColor'];
-                //     //               DateTime startTime =
-                //     //                   DateTime.fromMillisecondsSinceEpoch(
-                //     //                       tasksForSelectedDay[index]
-                //     //                           ['startTime']);
-                //     //               DateTime endTime =
-                //     //                   DateTime.fromMillisecondsSinceEpoch(
-                //     //                       tasksForSelectedDay[index]
-                //     //                           ['endTime']);
-                //     //               String formattedStartTime =
-                //     //                   DateFormat('ha').format(startTime);
-                //     //               String formattedEndTime =
-                //     //                   DateFormat('ha').format(endTime);
-                //     //               return Padding(
-                //     //                 padding: EdgeInsets.all(screenWidth * 0.01),
-                //     //                 child: TaskWidget(
-                //     //                   taskId: tasksForSelectedDay[index]['id'],
-                //     //                   title: tasksForSelectedDay[index]
-                //     //                       ['label'],
-                //     //                   isCheckedState: tasksForSelectedDay[index]
-                //     //                       ['isChecked'],
-                //     //                   taskColorIndicator: Color(int.parse(
-                //     //                       hexColor.replaceFirst('#', '0xff'))),
-                //     //                   description: tasksForSelectedDay[index]
-                //     //                       ['description'],
-                //     //                   startTime: formattedStartTime,
-                //     //                   endTime: formattedEndTime,
-                //     //                   onTaskDeleted: () {
-                //     //                     getUserTasks();
-                //     //                   },
-                //     //                 ),
-                //     //               );
-                //     //             })
-                //     //         : Text("No tasks for today!",
-                //     //             style: TextStyle(color: Colors.grey))),
-                //     SizedBox(
-                //       height: screenHeight * 0.01,
-                //     ),
-                //     const Text(
-                //       "Reminders",
-                //       style: TextStyle(
-                //         color: Color(0xff2A3143),
-                //         fontWeight: FontWeight.bold,
-                //       ),
-                //     ),
-                //     SizedBox(
-                //       height: screenHeight * 0.01,
-                //     ),
-                //     Container(
-                //         child: remindersList.isNotEmpty
-                //             ? ListView.builder(
-                //                 shrinkWrap: true,
-                //                 itemCount: remindersList.length,
-                //                 itemBuilder: (context, index) {
-                //                   DateTime dateTime = DateTime.parse(
-                //                       remindersList[index]['reminderTime']);
-                //                   return Padding(
-                //                     padding: EdgeInsets.all(screenWidth * 0.01),
-                //                     child: ReminderWidget(
-                //                       title: remindersList[index]['title'],
-                //                       reminderDate:
-                //                           DateFormat('dd MMM yyyy, hh:mm a')
-                //                               .format(dateTime),
-                //                       isActive: remindersList[index]
-                //                           ['isActive'],
-                //                       reminderId: remindersList[index]['id'],
-                //                       onReminderDeleted: () {
-                //                         getUserReminders();
-                //                       },
-                //                     ),
-                //                   );
-                //                 })
-                //             : Text(
-                //                 "No reminders at the moment!",
-                //                 style: TextStyle(color: Colors.grey),
-                //               )),
-                // ReminderWidget(),
-                // ],
-                // ),
               ],
             ),
           ),
@@ -310,7 +198,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // "New Task" button
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -343,7 +230,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
               ],
             ),
-
             SizedBox(
               width: screenWidth * 0.2,
             ),

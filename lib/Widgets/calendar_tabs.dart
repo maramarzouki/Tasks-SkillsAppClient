@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:planning_and_skills_app_client/Widgets/reminders_tab.dart';
 import 'package:planning_and_skills_app_client/Widgets/tasks_tab.dart';
+import 'package:planning_and_skills_app_client/models/task.dart';
 
 class CalendarTabs extends StatelessWidget {
-  final List<Map<String, dynamic>> tasks;
+  final List<Task> tasks;
   final VoidCallback refreshTasks;
   final List<dynamic> reminders;
   final VoidCallback refreshReminders;
@@ -16,6 +17,7 @@ class CalendarTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("TASKS $tasks");
     return DefaultTabController(
       length: 2,
       child: Column(
@@ -37,15 +39,22 @@ class CalendarTabs extends StatelessWidget {
               ],
             ),
           ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                TasksTab(tasks: tasks, refreshTasks: refreshTasks),
-                RemindersTab(
-                    reminders: reminders, refreshReminders: refreshReminders),
-              ],
-            ),
-          ),
+          Builder(builder: (context) {
+            final controller = DefaultTabController.of(context);
+            return ListenableBuilder(
+                listenable: controller,
+                builder: (context, child) {
+                  return IndexedStack(
+                    index: controller.index,
+                    children: [
+                      TasksTab(tasks: tasks, refreshTasks: refreshTasks),
+                      RemindersTab(
+                          reminders: reminders,
+                          refreshReminders: refreshReminders),
+                    ],
+                  );
+                });
+          })
         ],
       ),
     );

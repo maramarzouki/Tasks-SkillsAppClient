@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:planning_and_skills_app_client/Screens/signin_screen.dart';
+import 'package:planning_and_skills_app_client/screens/signin_screen.dart';
 import 'package:planning_and_skills_app_client/Widgets/custom_textfield_widget.dart';
 import 'package:planning_and_skills_app_client/models/user.dart';
 import 'package:planning_and_skills_app_client/services/user_service.dart';

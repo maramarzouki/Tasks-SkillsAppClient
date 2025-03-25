@@ -14,7 +14,7 @@ class Calendar extends StatefulWidget {
 class _CalendarState extends State<Calendar> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  CalendarFormat _calendarFormat = CalendarFormat.week;
 
   _onDaySelected(selectedDay, focusedDay) {
     if (!isSameDay(_selectedDay, selectedDay)) {

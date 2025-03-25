@@ -4,7 +4,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:planning_and_skills_app_client/Screens/navbar.dart';
+import 'package:planning_and_skills_app_client/config/extensions.dart';
+import 'package:planning_and_skills_app_client/models/task.dart';
+import 'package:planning_and_skills_app_client/screens/navbar.dart';
 import 'package:planning_and_skills_app_client/services/task_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,13 +44,14 @@ class _CreateTaskFormState extends State<CreateTaskForm> {
 
   // Task indicator colors
   final List<Color> _indicatorColors = [
-    Colors.grey,
-    Colors.pink,
-    Colors.orange,
-    Colors.yellow,
-    Colors.green,
-    Colors.blue,
-    Colors.purple,
+    Color(0xffABC4FF),
+    Color(0xffC3AAEF),
+    Color(0xffAEC6CF),
+    Color(0xffE78284),
+    Color(0xffFDE293),
+    Color(0xffF6C571),
+    Color(0xffF2CFD0),
+    Color(0xff83B89B),
   ];
   int _selectedIndicatorIndex = 0;
 
@@ -182,8 +185,7 @@ class _CreateTaskFormState extends State<CreateTaskForm> {
     final int userId = int.parse(decodedToken['nameid'].toString());
 
     try {
-      // Call the TaskService to create the task.
-      final String message = await TaskService.createTask(
+      final newTask = Task(
         label: label,
         description: description,
         startTime: startTimeEpoch,
@@ -191,14 +193,14 @@ class _CreateTaskFormState extends State<CreateTaskForm> {
         date: _selectedDate!,
         complexity: complexityInt,
         priority: priorityInt,
-        taskColor: taskColor,
+        taskColor: _indicatorColors[_selectedIndicatorIndex],
         interval: interval,
-        // intervalUnit: intervalUnit,
         duration: duration,
         durationUnit: durationUnit,
         isChecked: isChecked,
         userId: userId,
       );
+      final String message = await TaskService.createTask(newTask);
       Fluttertoast.showToast(
           msg: message,
           toastLength: Toast.LENGTH_SHORT,

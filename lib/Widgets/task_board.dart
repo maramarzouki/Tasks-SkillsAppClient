@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:planning_and_skills_app_client/models/task.dart';
 import 'package:planning_and_skills_app_client/services/task_service.dart';
-import 'package:planning_and_skills_app_client/Widgets/task_widget.dart';
+import 'package:planning_and_skills_app_client/widgets/core/custom_list.dart';
+import 'package:planning_and_skills_app_client/widgets/task_widget.dart';
 
 class TasksBoard extends StatefulWidget {
-  final List<Map<String, dynamic>> tasks;
+  final List<Task> tasks;
   final Function() refreshTasks;
 
   const TasksBoard(
@@ -15,8 +17,7 @@ class TasksBoard extends StatefulWidget {
 }
 
 class _TasksBoardState extends State<TasksBoard> {
-  late List<Map<String, dynamic>> pendingTasks;
-  late List<Map<String, dynamic>> doneTasks;
+  late List<Task> pendingTasks, doneTasks;
 
   @override
   void initState() {
@@ -31,18 +32,16 @@ class _TasksBoardState extends State<TasksBoard> {
   }
 
   void _splitTasks() {
-    pendingTasks =
-        widget.tasks.where((task) => task['isChecked'] == false).toList();
-    doneTasks =
-        widget.tasks.where((task) => task['isChecked'] == true).toList();
+    pendingTasks = widget.tasks.where((task) => !task.isChecked).toList();
+    doneTasks = widget.tasks.where((task) => task.isChecked).toList();
   }
 
-  Future<void> _updateTaskStatus(
-      Map<String, dynamic> task, bool isChecked) async {
+  Future<void> _updateTaskStatus(Task task, bool isChecked) async {
+    debugPrint("_updateTaskStatus isChecked: $isChecked");
     try {
-      await TaskService.checkTask(task['id'], isChecked);
+      await TaskService.checkTask(task.taskId, isChecked);
       setState(() {
-        task['isChecked'] = isChecked;
+        task.isChecked = isChecked;
         _splitTasks();
       });
       widget.refreshTasks();
@@ -52,27 +51,19 @@ class _TasksBoardState extends State<TasksBoard> {
   }
 
   // Helper to build a draggable Task widget
-  Widget _buildDraggableTask(Map<String, dynamic> task) {
-    Color taskColor = Color(
-      int.parse(task['taskColor'].replaceFirst('#', '0xff')),
-    );
-    DateTime startTime = DateTime.fromMillisecondsSinceEpoch(task['startTime']);
-    DateTime endTime = DateTime.fromMillisecondsSinceEpoch(task['endTime']);
-    String formattedStartTime = DateFormat('ha').format(startTime);
-    String formattedEndTime = DateFormat('ha').format(endTime);
+  Widget _buildDraggableTask(Task task) {
+    // DateTime startTime = DateTime.fromMillisecondsSinceEpoch(task.startTime);
+    // DateTime endTime = DateTime.fromMillisecondsSinceEpoch(task.endTime);
+    // String formattedStartTime = DateFormat('ha').format(startTime);
+    // String formattedEndTime = DateFormat('ha').format(endTime);
 
     Widget taskContent = TaskWidget(
-      taskId: task['id'],
-      title: task['label'],
-      isCheckedState: task['isChecked'],
-      taskColorIndicator: taskColor,
-      description: task['description'],
-      startTime: formattedStartTime,
-      endTime: formattedEndTime,
+      task: task,
       onTaskDeleted: widget.refreshTasks,
     );
+    debugPrint("buildDraggableTask $task $taskContent");
 
-    return Draggable<Map<String, dynamic>>(
+    return Draggable<Task>(
       data: task,
       feedback: SizedBox(
         width: 330, //match TaskWidget width
@@ -90,60 +81,44 @@ class _TasksBoardState extends State<TasksBoard> {
     );
   }
 
-  Widget _buildSection(
-      String title, List<Map<String, dynamic>> tasks, bool markDone) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 1),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 5,
-            ),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: DragTarget<Map<String, dynamic>>(
-                onAcceptWithDetails: (details) async {
-                  await _updateTaskStatus(details.data, markDone);
-                },
-                builder: (context, candidateData, rejectedData) {
-                  return Container(
-                    height: 250.0, // Set your desired height here
-                    padding: const EdgeInsets.only(left: 17, right: 17, top: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(5),
-                      // border: Border.all(color: Colors.grey, width: 1),
-                    ),
-                    child: ListView(
-                      children: [
-                        // Build each task widget with some spacing
-                        ...tasks.map((task) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              child: _buildDraggableTask(task),
-                            )),
-                      ],
-                    ),
-                    // child: ListView.builder(
-                    //   itemCount: tasks.length,
-                    //   itemBuilder: (context, index) {
-                    //     return Padding(
-                    //       padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    //       child: _buildDraggableTask(tasks[index]),
-                    //     );
-                    //   },
-                    // ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+  Widget _buildSection(String title, List<Task> tasks, bool markDone) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 1),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 1,
+        children: [
+          SizedBox(
+            height: 5,
+          ),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+          ),
+          DragTarget<Task>(
+            onAcceptWithDetails: (details) async {
+              debugPrint("onAcceptWithDetails ${details.data}");
+              await _updateTaskStatus(details.data, markDone);
+            },
+            builder: (context, candidateData, rejectedData) {
+              return Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xfff1f2f6),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: ListView(
+                    children: [
+                      // Build each task widget with some spacing
+                      ...tasks.map((task) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: _buildDraggableTask(task),
+                          )),
+                    ],
+                  ));
+            },
+          ),
+        ],
       ),
     );
   }

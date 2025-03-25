@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:planning_and_skills_app_client/Screens/home_screen.dart';
-import 'package:planning_and_skills_app_client/Screens/navbar.dart';
-import 'package:planning_and_skills_app_client/Screens/reset%20password%20screens/email_input_screen.dart';
-import 'package:planning_and_skills_app_client/Screens/signup_screen.dart';
+import 'package:planning_and_skills_app_client/screens/home_screen.dart';
+import 'package:planning_and_skills_app_client/screens/navbar.dart';
+import 'package:planning_and_skills_app_client/screens/reset%20password%20screens/email_input_screen.dart';
+import 'package:planning_and_skills_app_client/screens/signup_screen.dart';
 import 'package:planning_and_skills_app_client/Widgets/custom_textfield_widget.dart';
 import 'package:planning_and_skills_app_client/models/user.dart';
 import 'package:planning_and_skills_app_client/services/user_service.dart';

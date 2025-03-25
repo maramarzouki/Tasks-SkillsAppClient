@@ -16,6 +16,7 @@ class RemindersTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return reminders.isNotEmpty
         ? ListView.builder(
+            shrinkWrap: true,
             itemCount: reminders.length,
             itemBuilder: (context, index) {
               DateTime dateTime =

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:planning_and_skills_app_client/Screens/calendar_screen.dart';
-import 'package:planning_and_skills_app_client/Screens/home_screen.dart';
-import 'package:planning_and_skills_app_client/Screens/modules_screen.dart';
-import 'package:planning_and_skills_app_client/Screens/timers_screen.dart';
+import 'package:planning_and_skills_app_client/screens/calendar_screen.dart';
+import 'package:planning_and_skills_app_client/screens/home_screen.dart';
+import 'package:planning_and_skills_app_client/screens/modules_screen.dart';
+import 'package:planning_and_skills_app_client/screens/timers_screen.dart';
 
 class Navbar extends StatefulWidget {
   static const routeName = '/navbar';

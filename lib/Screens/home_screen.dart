@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:planning_and_skills_app_client/Services/task_service.dart';
 import 'package:planning_and_skills_app_client/Widgets/greetings_bar.dart';
+import 'package:planning_and_skills_app_client/Widgets/task_widget.dart';
+import 'package:planning_and_skills_app_client/models/task.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/homescreen';
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -15,12 +18,62 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   double completionRate = 0.0;
+  List<Task> tasksList = [];
+  int? userID;
+  final DateTime _selectedDay = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchTasks();
+  Future<void> getUserTasks() async {
+    print("getTasks called");
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString("token");
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Authentication token not found.')),
+        );
+        return;
+      }
+      final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      final int userId = int.parse(decodedToken['nameid'].toString());
+      tasksList = await TaskService.getUserTasks(userId);
+      setState(() {});
+      print("tasksListAAA: $tasksList");
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
+
+  Map<DateTime, List<Task>> get _groupedTasks {
+    return _groupTasksByDate(tasksList);
+  }
+
+  Map<DateTime, List<Task>> _groupTasksByDate(List<Task> tasks) {
+    Map<DateTime, List<Task>> data = {};
+    for (var task in tasks) {
+      DateTime date = task.date;
+      DateTime normalizedDate = DateTime(date.year, date.month, date.day);
+      if (data[normalizedDate] == null) {
+        data[normalizedDate] = [];
+      }
+      data[normalizedDate]!.add(task);
+    }
+    data.forEach((key, tasksList) {
+      tasksList.sort((a, b) {
+        return (a.startTime).compareTo(b.startTime);
+      });
+    });
+    return data;
+  }
+
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   getUserTasks();
+  // }
 
   Future<void> _fetchTasks() async {
     try {
@@ -35,16 +88,15 @@ class _HomeScreenState extends State<HomeScreen> {
       final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       final int userId = int.parse(decodedToken['nameid'].toString());
 
-      List tasks = await TaskService.getUserTasks(userId);
+      List<Task> tasks = await TaskService.getUserTasks(userId);
       DateTime today = DateTime.now();
-      List todayTasks = tasks.where((task) {
-        return DateTime.parse(task['date']).day == today.day &&
-            DateTime.parse(task['date']).month == today.month &&
-            DateTime.parse(task['date']).year == today.year;
+      List<Task> todayTasks = tasks.where((task) {
+        return task.date.day == today.day &&
+            task.date.month == today.month &&
+            task.date.year == today.year;
       }).toList();
 
-      int checkedTasks =
-          todayTasks.where((task) => task['isChecked'] == true).length;
+      int checkedTasks = todayTasks.where((task) => task.isChecked).length;
       double percentage =
           todayTasks.isNotEmpty ? checkedTasks / todayTasks.length : 0.0;
 
@@ -74,16 +126,25 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    getUserTasks();
+    _fetchTasks();
+  }
+
+  @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
+    List<Task> tasksForSelectedDay = _groupedTasks[_selectedDay] ?? [];
     return Scaffold(
       backgroundColor: Color(0xfff1f2f6),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(screenWidth * 0.03),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GreetingsBar(),
               Container(
@@ -149,6 +210,61 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              SizedBox(
+                height: screenHeight * 0.03,
+              ),
+              Text(
+                'Today\'s tasks',
+                style: TextStyle(
+                    color: const Color(0xff2A3143),
+                    fontWeight: FontWeight.bold),
+              ),
+              SizedBox(
+                height: screenHeight * 0.01,
+              ),
+              Container(
+                  child: tasksForSelectedDay.isNotEmpty
+                      ? ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: tasksForSelectedDay.length,
+                          itemBuilder: (context, index) {
+                            // String hexColor =
+                            //     tasksForSelectedDay[index]['taskColor'];
+                            // DateTime startTime =
+                            //     DateTime.fromMillisecondsSinceEpoch(
+                            //         tasksForSelectedDay[index]['startTime']);
+                            // DateTime endTime =
+                            //     DateTime.fromMillisecondsSinceEpoch(
+                            //         tasksForSelectedDay[index]['endTime']);
+                            // String formattedStartTime =
+                            //     DateFormat('ha').format(startTime);
+                            // String formattedEndTime =
+                            //     DateFormat('ha').format(endTime);
+                            // Duration taskDuration =
+                            //     endTime.difference(startTime);
+                            // int taskDurationInSeconds = taskDuration.inSeconds;
+                            return Padding(
+                              padding: EdgeInsets.all(screenWidth * 0.01),
+                              child: TaskWidget(
+                                task: tasksForSelectedDay[index],
+                                // taskId: tasksForSelectedDay[index]['id'],
+                                // title: tasksForSelectedDay[index]['label'],
+                                // isCheckedState: tasksForSelectedDay[index]
+                                //     ['isChecked'],
+                                // taskColorIndicator: Color(int.parse(
+                                //     hexColor.replaceFirst('#', '0xff'))),
+                                // description: tasksForSelectedDay[index]
+                                //     ['description'],
+                                // startTime: formattedStartTime,
+                                // endTime: formattedEndTime,
+                                onTaskDeleted: () {
+                                  getUserTasks();
+                                },
+                              ),
+                            );
+                          })
+                      : Text("No tasks for today!",
+                          style: TextStyle(color: Colors.grey)))
             ],
           ),
         ),

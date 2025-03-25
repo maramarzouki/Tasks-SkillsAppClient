@@ -55,8 +55,12 @@ class _GreetingsBarState extends State<GreetingsBar> {
             toMinutes(TimeOfDay(hour: 12, minute: 1)) &&
         toMinutes(currentTime) <= toMinutes(TimeOfDay(hour: 17, minute: 0))) {
       greetingMessage = "Good afternoon,";
-    } else {
+    } else if (toMinutes(currentTime) >=
+            toMinutes(TimeOfDay(hour: 17, minute: 1)) &&
+        toMinutes(currentTime) <= toMinutes(TimeOfDay(hour: 20, minute: 0))) {
       greetingMessage = "Good evening,";
+    } else {
+      greetingMessage = "Good night,";
     }
   }
 

@@ -29,7 +29,7 @@ class _AddReminderWidgetState extends State<AddReminderWidget> {
     final newDate = await showDatePicker(
       context: context,
       initialDate: now,
-      firstDate: DateTime(now.year - 2),
+      firstDate: now,
       lastDate: DateTime(now.year + 5),
     );
     if (newDate != null) {

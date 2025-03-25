@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:pinput/pinput.dart';
-import 'package:planning_and_skills_app_client/Screens/reset%20password%20screens/reset_password_screen.dart';
+import 'package:planning_and_skills_app_client/screens/reset%20password%20screens/reset_password_screen.dart';
 import 'package:planning_and_skills_app_client/services/user_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -1,25 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:planning_and_skills_app_client/models/task.dart';
 import 'package:planning_and_skills_app_client/services/task_service.dart';
 
 class TaskWidget extends StatefulWidget {
-  final String title, description, startTime, endTime;
-  final bool isCheckedState;
-  final int taskId;
-  final Color taskColorIndicator;
+  final Task task;
   final Function() onTaskDeleted;
   final Function()? startTaskTimer;
   const TaskWidget(
       {super.key,
-      required this.title,
-      required this.isCheckedState,
-      required this.taskId,
       required this.onTaskDeleted,
-      required this.taskColorIndicator,
-      required this.description,
-      required this.startTime,
-      required this.endTime,
-      this.startTaskTimer});
+      this.startTaskTimer,
+      required this.task});
 
   @override
   State<TaskWidget> createState() => _TaskWidgetState();
@@ -29,25 +21,25 @@ class _TaskWidgetState extends State<TaskWidget> {
   late bool isChecked;
   bool _isHighlighted = false;
 
-  Future<void> checkTask() async {
-    final previousState = isChecked;
-    try {
-      final taskID = widget.taskId;
-      final response = await TaskService.checkTask(taskID, !isChecked);
-      setState(() {
-        isChecked = !isChecked;
-      });
-    } catch (e) {
-      setState(() {
-        isChecked = previousState;
-      });
-      debugPrint(e.toString());
-    }
-  }
+  // Future<void> checkTask() async {
+  //   final previousState = isChecked;
+  //   try {
+  //     final taskID = widget.task.taskId;
+  //     final response = await TaskService.checkTask(taskID, !isChecked);
+  //     setState(() {
+  //       isChecked = !isChecked;
+  //     });
+  //   } catch (e) {
+  //     setState(() {
+  //       isChecked = previousState;
+  //     });
+  //     debugPrint(e.toString());
+  //   }
+  // }
 
   Future<void> deleteTask() async {
     try {
-      final taskID = widget.taskId;
+      final taskID = widget.task.taskId;
       final response = await TaskService.deleteTask(taskID);
       Fluttertoast.showToast(
           msg: response,
@@ -66,15 +58,15 @@ class _TaskWidgetState extends State<TaskWidget> {
   @override
   void initState() {
     super.initState();
-    isChecked = widget.isCheckedState;
+    isChecked = widget.task.isChecked;
   }
 
   @override
   void didUpdateWidget(covariant TaskWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.isCheckedState != widget.isCheckedState) {
+    if (oldWidget.task.isChecked != widget.task.isChecked) {
       setState(() {
-        isChecked = widget.isCheckedState;
+        isChecked = widget.task.isChecked;
       });
     }
   }
@@ -126,7 +118,7 @@ class _TaskWidgetState extends State<TaskWidget> {
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: widget.taskColorIndicator,
+            color: widget.task.taskColor,
             borderRadius: BorderRadius.circular(15),
           ),
           child: Row(
@@ -136,7 +128,7 @@ class _TaskWidgetState extends State<TaskWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.title,
+                      widget.task.label,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15,
@@ -145,7 +137,7 @@ class _TaskWidgetState extends State<TaskWidget> {
                     ),
                     SizedBox(height: 1),
                     Text(
-                      widget.description,
+                      widget.task.description,
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 14,
@@ -167,7 +159,7 @@ class _TaskWidgetState extends State<TaskWidget> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  "${widget.startTime} - ${widget.endTime}",
+                  "${widget.task.formattedStartTime} - ${widget.task.formattedEndTime}",
                   style: TextStyle(color: Colors.white),
                 ),
               ),

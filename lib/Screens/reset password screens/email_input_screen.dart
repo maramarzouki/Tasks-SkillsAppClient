@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:planning_and_skills_app_client/Screens/navbar.dart';
-import 'package:planning_and_skills_app_client/Screens/reset%20password%20screens/code_input_screen.dart';
+import 'package:planning_and_skills_app_client/screens/navbar.dart';
+import 'package:planning_and_skills_app_client/screens/reset%20password%20screens/code_input_screen.dart';
 import 'package:planning_and_skills_app_client/Widgets/custom_textfield_widget.dart';
 import 'package:planning_and_skills_app_client/services/user_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';

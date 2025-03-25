@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:planning_and_skills_app_client/Screens/timer_screen.dart';
+import 'package:planning_and_skills_app_client/screens/timer_screen.dart';
 import 'package:planning_and_skills_app_client/Widgets/task_widget.dart';
 import 'package:planning_and_skills_app_client/services/task_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +16,6 @@ class TimersScreen extends StatefulWidget {
 
 class _TimersScreenState extends State<TimersScreen> {
   List<dynamic> tasksList = [];
-  List<dynamic> remindersList = [];
   int? userID;
   final DateTime _selectedDay = DateTime(
     DateTime.now().year,
@@ -87,6 +86,7 @@ class _TimersScreenState extends State<TimersScreen> {
     List<dynamic> tasksForSelectedDay = _groupedTasks[_selectedDay] ?? [];
 
     return Scaffold(
+      backgroundColor: Color(0xfff1f2f6),
       body: SafeArea(
           child: Padding(
         padding: EdgeInsets.all(8),
@@ -122,62 +122,35 @@ class _TimersScreenState extends State<TimersScreen> {
                         int taskDurationInSeconds = taskDuration.inSeconds;
                         return Padding(
                           padding: EdgeInsets.all(screenWidth * 0.01),
-                          child: InkWell(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  backgroundColor: Colors.white,
-                                  title: const Text("test"),
-                                  content: const Text("test?"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text(
-                                        "Cancel",
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {},
-                                      child: const Text(
-                                        "Yes",
-                                      ),
-                                    ),
-                                  ],
+                          child: TaskWidget(
+                            task: tasksForSelectedDay[index],
+                            // taskId: tasksForSelectedDay[index]['id'],
+                            // title: tasksForSelectedDay[index]['label'],
+                            // isCheckedState: tasksForSelectedDay[index]
+                            //     ['isChecked'],
+                            // taskColorIndicator: Color(
+                            //     int.parse(hexColor.replaceFirst('#', '0xff'))),
+                            // description: tasksForSelectedDay[index]
+                            //     ['description'],
+                            // startTime: formattedStartTime,
+                            // endTime: formattedEndTime,
+                            startTaskTimer: () {
+                              Duration taskDuration =
+                                  endTime.difference(startTime);
+                              int taskDurationInSeconds =
+                                  taskDuration.inSeconds;
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TimerScreen(
+                                      initialDuration: taskDurationInSeconds),
                                 ),
                               );
                             },
-                            child: TaskWidget(
-                              taskId: tasksForSelectedDay[index]['id'],
-                              title: tasksForSelectedDay[index]['label'],
-                              isCheckedState: tasksForSelectedDay[index]
-                                  ['isChecked'],
-                              taskColorIndicator: Color(int.parse(
-                                  hexColor.replaceFirst('#', '0xff'))),
-                              description: tasksForSelectedDay[index]
-                                  ['description'],
-                              startTime: formattedStartTime,
-                              endTime: formattedEndTime,
-                              startTaskTimer: () {
-                                Duration taskDuration =
-                                    endTime.difference(startTime);
-                                int taskDurationInSeconds =
-                                    taskDuration.inSeconds;
-
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => TimerScreen(
-                                        initialDuration: taskDurationInSeconds),
-                                  ),
-                                );
-                              },
-                              onTaskDeleted: () {
-                                getUserTasks();
-                              },
-                            ),
+                            onTaskDeleted: () {
+                              getUserTasks();
+                            },
                           ),
                         );
                       })

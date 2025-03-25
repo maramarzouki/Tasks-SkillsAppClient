@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:planning_and_skills_app_client/Widgets/task_board.dart';
+import 'package:planning_and_skills_app_client/models/task.dart';
 
 class TasksTab extends StatelessWidget {
-  final List<Map<String, dynamic>> tasks;
+  final List<Task> tasks;
   final VoidCallback refreshTasks;
 
   const TasksTab({
@@ -16,12 +17,9 @@ class TasksTab extends StatelessWidget {
     return tasks.isNotEmpty
         ? Column(
             children: [
-              // Wrap TasksBoard in Expanded to fill available space
-              Expanded(
-                child: TasksBoard(
-                  tasks: tasks,
-                  refreshTasks: refreshTasks,
-                ),
+              TasksBoard(
+                tasks: tasks,
+                refreshTasks: refreshTasks,
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),

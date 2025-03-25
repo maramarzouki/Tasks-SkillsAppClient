@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:planning_and_skills_app_client/Screens/signin_screen.dart';
+import 'package:planning_and_skills_app_client/screens/signin_screen.dart';
 import 'package:planning_and_skills_app_client/Widgets/custom_textfield_widget.dart';
 import 'package:planning_and_skills_app_client/services/user_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';

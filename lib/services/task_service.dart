@@ -2,47 +2,18 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:planning_and_skills_app_client/models/task.dart';
 
 class TaskService {
   static final String? ipAddress = dotenv.env['IP_ADDRESS'];
   static final String baseUrl = "http://$ipAddress:5256/api/task";
 
-  static Future<String> createTask({
-    required String label,
-    required String description,
-    required int startTime,
-    required int endTime,
-    required DateTime date,
-    required int complexity,
-    required int priority,
-    int? interval,
-    // int? intervalUnit,
-    int? duration,
-    int? durationUnit,
-    required bool isChecked,
-    required int userId,
-    required String taskColor,
-  }) async {
+  static Future<String> createTask(Task task) async {
     final url = Uri.parse('$baseUrl/createTask');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'label': label,
-        'description': description,
-        'startTime': startTime,
-        'endTime': endTime,
-        'date': date.toIso8601String(),
-        'complexity': complexity,
-        'priority': priority,
-        'taskColor': taskColor,
-        'interval': interval,
-        // 'intervalUnit': intervalUnit,
-        'duration': duration,
-        'durationUnit': durationUnit,
-        'isChecked': isChecked,
-        'userId': userId,
-      }),
+      body: jsonEncode(task.toJson()),
     );
     final Map<String, dynamic> data = jsonDecode(response.body);
     if (response.statusCode == 200) {
@@ -52,7 +23,7 @@ class TaskService {
     }
   }
 
-  static Future<List> getUserTasks(userId) async {
+  static Future<List<Task>> getUserTasks(userId) async {
     try {
       var url = Uri.parse('$baseUrl/getUserTasks/$userId');
       final response = await http.get(url, headers: {
@@ -60,36 +31,61 @@ class TaskService {
       });
 
       if (response.statusCode == 200) {
-        print("Response Body: ${response.body}");
+        final dynamic decodedData = jsonDecode(response.body);
 
-        if (response.body == null ||
-            response.body.isEmpty ||
-            response.body == "null") {
-          print("Response body is null or empty");
+        // Check if the response is a Map with a "message" key.
+        if (decodedData is Map && decodedData.containsKey("message")) {
+          final List tasksData = decodedData["message"];
+          return tasksData.map((item) => Task.fromJson(item)).toList();
+        } else if (decodedData is List) {
+          // Fallback if the API returns a List directly.
+          return decodedData.map((item) => Task.fromJson(item)).toList();
+        } else {
+          debugPrint("Unexpected response format: $decodedData");
           return [];
         }
-
-        final jsonResponse = jsonDecode(response.body);
-        List<dynamic> data;
-        if (jsonResponse is List) {
-          data = jsonResponse;
-        } else if (jsonResponse is Map) {
-          // Extract the list from the 'message' key based on your backend response
-          data = jsonResponse['message'] ?? [];
-        } else {
-          data = [];
-        }
-
-        return data;
       } else {
-        print('There was an error fetching data');
-        throw Exception('Failed to fetch data');
+        debugPrint('Error fetching data. Status code: ${response.statusCode}');
+        return [];
       }
     } catch (e) {
-      debugPrint(e.toString());
-      throw Exception(e.toString());
+      debugPrint("Error: ${e.toString()}");
+      return [];
     }
   }
+
+  // static Future<List<Task>> getUserTasks(userId) async {
+  //   try {
+  //     var url = Uri.parse('$baseUrl/getUserTasks/$userId');
+  //     final response = await http.get(url, headers: {
+  //       'content-type': 'application/json',
+  //     });
+
+  //     if (response.statusCode == 200) {
+  //       final dynamic decodedData = jsonDecode(response.body);
+
+  //       // Ensure it's a List before mapping
+  //       if (decodedData['message'] is List) {
+  //         return decodedData.map((item) => Task.fromJson(item)).toList();
+  //       } else {
+  //         debugPrint("Unexpected response format: $decodedData");
+  //         return [];
+  //       }
+  //       // debugPrint(
+  //       //     "REPONSE Body ${(jsonDecode(response.body) as List).map((json) => Task.fromJson(json)).toList()}");
+  //       // // return Task.fromJson(response.data);
+  //       // return (jsonDecode(response.body) as List)
+  //       //     .map((json) => Task.fromJson(json))
+  //       //     .toList();
+  //     } else {
+  //       debugPrint('There was an error fetching data');
+  //       return [];
+  //     }
+  //   } catch (e) {
+  //     debugPrint("ERROROORORRR ${e.toString()}");
+  //     return [];
+  //   }
+  // }
 
   static Future<String> checkTask(taskId, isChecked) async {
     try {
@@ -104,8 +100,8 @@ class TaskService {
         // The backend returns a simple message as a string.
         return response.body;
       } else {
-        print('There was an error deleting the task');
-        throw Exception('Failed to delete task');
+        debugPrint('There was an error checking the task');
+        throw Exception('There was an error checking the task');
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -129,12 +125,12 @@ class TaskService {
         // The backend returns a simple message as a string.
         return data['message'];
       } else {
-        print('There was an error deleting the task');
-        throw Exception('Failed to delete task');
+        debugPrint(data.toString());
+        return 'There was an error deleting the task!';
       }
     } catch (e) {
       debugPrint(e.toString());
-      throw Exception(e.toString());
+      throw Exception("EX HERE ${e.toString()}");
     }
   }
 }
